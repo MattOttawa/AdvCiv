@@ -23699,9 +23699,16 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const {
 } // </advc.104>
 
 // <advc.004x>
-void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1) {
-
-	if(getID() != GC.getGame().getActivePlayer() || !isHuman())
+void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
+{
+	CvGame const& g = GC.getGame();
+	if(getID() != g.getActivePlayer() || !isHuman() ||
+			 /* (If outdated non-minimized popups are also a problem, then this
+				check could just be removed; should work alright.) */
+			!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) ||
+			/*  I can't get this to work in network games. The delays introduced by
+				net messages cause popups to appear several times. */
+			g.isNetworkMultiPlayer())
 		return;
 	// Preserve the popups we don't want killed in newQueue
 	std::list<CvPopupInfo*> newQueue;
