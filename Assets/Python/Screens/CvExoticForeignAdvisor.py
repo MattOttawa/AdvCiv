@@ -1316,8 +1316,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					sAmount = str(gc.getPlayer(iLoopPlayer).AI_maxGoldTrade(self.iActiveLeader))
 					self.techIconGrid.setText(currentRow, iTechColGold, sAmount)
 
-				if (gc.getTeam(activePlayer.getTeam()).isTechTrading() or gc.getTeam(currentPlayer.getTeam()).isTechTrading() ):
-
+				#if (gc.getTeam(activePlayer.getTeam()).isTechTrading() or gc.getTeam(currentPlayer.getTeam()).isTechTrading() ):
+				if activePlayer.canSeeTech(iLoopPlayer): # advc.120d
 					for iLoopTech in range(gc.getNumTechInfos()):
 					
 						tradeData.iData = iLoopTech
