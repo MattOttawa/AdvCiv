@@ -964,8 +964,13 @@ void CvPlayer::changeLeader(LeaderHeadTypes eNewLeader)
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
 	}
-
-	AI_init();
+	/*  advc.104: Re-initializing the AI here was probably always a bad idea,
+		but definitely mustn't re-initialize UWAI. */
+	//AI_init();
+	// <advc.tmp> Copy-pasted from AI_init. (AdvCiv 0.97 will clean this up.)
+	AI().AI_setPeaceWeight(GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight() + GC.getGame().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getPeaceWeightRand(), "AI Peace Weight"));
+	AI().AI_setEspionageWeight(GC.getLeaderHeadInfo(getPersonalityType()).getEspionageWeight() * GC.getCommerceInfo(COMMERCE_ESPIONAGE).getAIWeightPercent() / 100);
+	// </advc.tmp>
 }
 
 // (advc.003: Moved up so that all the CHANGE_PLAYER code dated 08/17/08 is in one place)
@@ -7886,7 +7891,7 @@ void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligio
 	if (bAward && kSlotReligion.getNumFreeUnits() > 0)
 	{
 		UnitTypes eFreeUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
-				getCivilizationUnits(kSlotReligion.getFreeUnitClass());
+				getCivilizationUnits(GC.getReligionInfo(eReligion).getFreeUnitClass());
 		if (eFreeUnit != NO_UNIT)
 		{
 			for (int i = 0; i < kSlotReligion.getNumFreeUnits(); i++)
@@ -14353,8 +14358,9 @@ bool CvPlayer::canSeeTech(PlayerTypes eOther) const {
 		return true;
 	if(otherTeam.isVassal(ourTeam.getID()))
 		return true; // Can see tech through "we'd like you to research ..."
-	if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING))
-		return false;
+	// advc.553: Make tech visible despite No Tech Trading (as in BtS)
+	/*if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING))
+		return false;*/
 	if(!ourTeam.isAlive() || !otherTeam.isAlive() ||
 			ourTeam.isBarbarian() || otherTeam.isBarbarian() ||
 			ourTeam.isMinorCiv() || otherTeam.isMinorCiv())

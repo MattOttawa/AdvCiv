@@ -58,8 +58,8 @@ class ChangePlayer :
 	def onKbdEvent(self, argsList ):
 		'keypress handler'
 		eventType,key,mx,my,px,py = argsList
-
-		if ( eventType == 6 ):
+		# advc: Check cheat level
+		if getChtLvl() > 0 and eventType == 6:
 			theKey=int(key)
 
 			if( theKey == int(InputTypes.KB_P) and self.customEM.bShift and self.customEM.bCtrl ) :
@@ -112,15 +112,15 @@ def changeCivPopup( ) :
 
 	popup.popup.setSelectedPulldownID( activePlayer.getLeaderType(), 3 )
 
-	popup.createPythonPullDown( ' ... on this team', 4 )
-	popup.addPullDownString( "Keep current team", -1, 4 )  # Team idx of -1 maintains current team setting
-	for i in range(0,gc.getMAX_PLAYERS()) :
-		player = PyPlayer(i)
-		if( not player.isNone() ) :
-			if( player.isAlive() ) :
-				popup.addPullDownString( "Team with the %s"%(player.getCivilizationName()), i, 4 )
-
-	popup.popup.setSelectedPulldownID( -1, 4 )
+	# advc.127c: Commented out. This isn't fully implemented (changeCiv ignores teamIdx.)
+	#popup.createPythonPullDown( ' ... on this team', 4 )
+	#popup.addPullDownString( "Keep current team", -1, 4 )  # Team idx of -1 maintains current team setting
+	#for i in range(0,gc.getMAX_PLAYERS()) :
+	#	player = PyPlayer(i)
+	#	if( not player.isNone() ) :
+	#		if( player.isAlive() ) :
+	#			popup.addPullDownString( "Team with the %s"%(player.getCivilizationName()), i, 4 )
+	#popup.popup.setSelectedPulldownID( -1, 4 )
 
 	popup.addSeparator()
 
@@ -137,14 +137,18 @@ def changeCivHandler( playerID, netUserData, popupReturn ) :
 	playerIdx = popupReturn.getSelectedPullDownValue( 1 )
 	newCivType = popupReturn.getSelectedPullDownValue( 2 )
 	newLeaderType = popupReturn.getSelectedPullDownValue( 3 )
-	teamIdx = popupReturn.getSelectedPullDownValue( 4 )
+	# advc.127c: Team choice removed from popup
+	#teamIdx = popupReturn.getSelectedPullDownValue( 4 )
 
 	if( LOG_DEBUG ) : CvUtil.pyPrint( "   CP : You have selected player %d, the %s, on team %d"%(playerIdx, gc.getPlayer(playerIdx).getCivilizationDescription(0), gc.getPlayer(playerIdx).getTeam()) )
-	if( LOG_DEBUG ) : CvUtil.pyPrint( "   CP : New team idx is %d"%(teamIdx) )
+	# advc.127c: Commented out
+	#if( LOG_DEBUG ) : CvUtil.pyPrint( "   CP : New team idx is %d"%(teamIdx) )
 
 	#player = gc.getPlayer(playerIdx)
 	#game.changePlayer( playerIdx, newCivType, newLeaderType, teamIdx, player.isHuman(), True )
-	success = changeCiv( playerIdx, newCivType, newLeaderType, teamIdx )
+
+	# advc.127c: Last param was teamIdx
+	success = changeCiv( playerIdx, newCivType, newLeaderType, -1 )
 
 	if( success ) :
 		CyInterface().addImmediateMessage("Player %d has been changed"%(playerIdx),"")

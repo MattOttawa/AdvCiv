@@ -4133,7 +4133,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 			szString.append(L' ');//XXX
 			// advc.003: Another batch of repeated modifiers
-			appendPositiveModifiers(szString, pAttacker, pDefender, pPlot);
+			appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, true);
 		}
 
 		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
@@ -4188,7 +4188,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH", iModifier));
 		}
 		// advc.003: Same code as in the ACO_enabled branch; use subroutine instead.
-		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot);
+		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, false);
 
 		if (!(pDefender->immuneToFirstStrikes()))
 		{
@@ -15758,7 +15758,8 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 				/*  <advc.004q> Cap attitude change at 1 for memory types that
 					can give away a leader's hidden personality. */
 				int iAbsAttitudeChange = std::abs(iAttitudeChange);
-				if (iAbsAttitudeChange > 1 && bObscurePersonality)
+				if (iAbsAttitudeChange > 1 && bObscurePersonality &&
+					kPlayer.AI_getMemoryCount(eTargetPlayer, (MemoryTypes)iI) <= 2)
 				{
 					for (int j = 0; j < iNumObscureMemoryTypes; j++)
 					{
@@ -20702,15 +20703,16 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 
 // advc.003: Body cut and pasted from setCombatPlotHelp
 void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
-		CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot) {
+		CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot, bool bNegative) {
 
+	int const iSign = (bNegative ? -1 : 1);
 	int iModifier = pAttacker->unitClassAttackModifier(pDefender->getUnitClassType());
 
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				-iModifier, GC.getUnitClassInfo(pDefender->getUnitClassType()).
+				iSign * iModifier, GC.getUnitClassInfo(pDefender->getUnitClassType()).
 				getTextKeyWide()));
 	}
 
@@ -20722,7 +20724,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-					-iModifier, GC.getUnitCombatInfo(
+					iSign * iModifier, GC.getUnitCombatInfo(
 					pDefender->getUnitCombatType()).getTextKeyWide()));
 		}
 	}
@@ -20733,7 +20735,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				-iModifier, GC.getDomainInfo(pDefender->getDomainType()).
+				iSign * iModifier, GC.getDomainInfo(pDefender->getDomainType()).
 				getTextKeyWide()));
 	}
 
@@ -20744,7 +20746,8 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_CITY_MOD", -iModifier));
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_CITY_MOD",
+					iSign * iModifier));
 		}
 	}
 
@@ -20755,7 +20758,8 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HILLS_MOD", -iModifier));
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HILLS_MOD",
+					iSign * iModifier));
 		}
 	}
 
@@ -20767,7 +20771,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					-iModifier, GC.getFeatureInfo(pPlot->getFeatureType()).
+					iSign * iModifier, GC.getFeatureInfo(pPlot->getFeatureType()).
 					getTextKeyWide()));
 		}
 	}
@@ -20779,7 +20783,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					-iModifier, GC.getTerrainInfo(pPlot->getTerrainType()).
+					iSign * iModifier, GC.getTerrainInfo(pPlot->getTerrainType()).
 					getTextKeyWide()));
 		}
 	}
@@ -20789,7 +20793,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_KAMIKAZE_MOD",
-				-iModifier));
+				iSign * iModifier));
 	}
 
 	if (pDefender->isAnimal())
@@ -20800,7 +20804,8 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD", -iModifier));
+			szString.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD",
+					iSign * iModifier));
 		}
 	}
 
@@ -20811,7 +20816,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD",
-					-iModifier));
+					iSign * iModifier));
 		}
 		// <advc.315c> Show modifier from difficulty separately from unit abilities
 		iModifier = GC.getHandicapInfo(
@@ -20827,7 +20832,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_MISC_FROM_HANDICAP",
-					-iModifier));
+					iSign * iModifier));
 		} // </advc.315c>
 	}
 }

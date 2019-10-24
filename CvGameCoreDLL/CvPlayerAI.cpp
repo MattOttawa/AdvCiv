@@ -25320,17 +25320,19 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 		iDefenders = std::min(iDefenders, iAreaCities * iAreaCities - 1);*/
 		// Lessen defensive requirements only if not being attacked locally
 		int iUpperBound = iAreaCities * iAreaCities - 1; // advc.107: BtS upper bound
-		if (//pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE
-		// This may be our first city captured on a large enemy continent, need defenses to scale up based
-			// on total number of area cities not just ours
-			// advc.107: Check if we actually have plans to expand our presence
-			pArea->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE || pArea->getAreaAIType(getTeam()) == AREAAI_MASSING)
+		// advc.107: Check if we actually have plans to expand our presence
+		if (pArea->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE || pArea->getAreaAIType(getTeam()) == AREAAI_MASSING)
 		{
 			iUpperBound += pArea->getNumCities() - iAreaCities;
 		}
+		if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
+		{
 		// UNOFFICIAL_PATCH: END
-		// advc.107: Apply an upper bound in any case!
-		iDefenders = std::min(iDefenders, iUpperBound); 
+			/*  <advc.107> Still apply an upper bound in that case.
+				Defending colonies may well be a lost cause. */
+			iUpperBound += pArea->getNumCities() / 2;
+		}
+		iDefenders = std::min(iDefenders, iUpperBound); // </advc.107>
 	}
 
 	return iDefenders;
