@@ -1567,47 +1567,44 @@ void CvGame::doControl(ControlTypes eControl)
 		}
 		break;
 
-	case CONTROL_SELECT_HEALTHY:
+	case CONTROL_SELECT_HEALTHY: // advc: Refactored this case
+	{
+		pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
+		if (pHeadSelectedUnit != NULL)
 		{
-			CvUnit* pGroupHead = NULL;
-			pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
-			pInterface->clearSelectionList();
-			if (pHeadSelectedUnit != NULL)
+			/* <advc.001z> Compute the units to be selected upfront b/c, if there
+				are none, then the current selection shouldn't be cleared. */
+			std::vector<CvUnit*> toBeSelected;
+			std::vector<CvUnit*> plotUnits;
+			getPlotUnits(pHeadSelectedUnit->plot(), plotUnits);
+			for (size_t i = 0; i < plotUnits.size(); i++)
 			{
-				pPlot = pHeadSelectedUnit->plot();
-				std::vector<CvUnit *> plotUnits;
-				getPlotUnits(pPlot, plotUnits);
+				CvUnit& kUnit = *plotUnits[i];
+				// disabled by K-Mod
+				//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - kUnit.getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) {
+				if (kUnit.getOwner() == getActivePlayer() && kUnit.isHurt() &&
+						// advc.001z: Can't select units of different domains
+						kUnit.getDomainType() == pHeadSelectedUnit->getDomainType())
+					toBeSelected.push_back(&kUnit);
+			}
+			if (!toBeSelected.empty()) // advc.001z
+			{
+				pInterface->clearSelectionList();
 				pInterface->selectionListPreChange();
-				for (int iI = 0; iI < (int) plotUnits.size(); iI++)
+				CvUnit const* pGroupHead = NULL;
+				for (size_t i = 0; i < toBeSelected.size(); i++) // advc.001z
 				{
-					pUnit = plotUnits[iI];
-
-					if (pUnit->getOwner() == getActivePlayer())
-					{
-						//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - pUnit->getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) // disabled by K-Mod
-						{
-							if (pUnit->isHurt())
-							{
-								if (pGroupHead != NULL)
-								{
-									CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), pGroupHead->getID());
-								}
-								else
-								{
-									pGroupHead = pUnit;
-								}
-
-								pInterface->insertIntoSelectionList(pUnit, false, false, true, true, true);
-							}
-						}
-					}
+					CvUnit* pUnit = toBeSelected[i]; // advc.001z
+					if (pGroupHead != NULL)
+						CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), pGroupHead->getID());
+					else pGroupHead = pUnit;
+					pInterface->insertIntoSelectionList(pUnit, false, false, true, true, true);
 				}
-
 				pInterface->selectionListPostChange();
 			}
 		}
 		break;
-
+	}
 	case CONTROL_SELECTCITY:
 		if (pInterface->isCityScreenUp())
 		{
