@@ -12795,8 +12795,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iCh
 		// I can live with cheating when it comes to strategic bonuses
 		bUseOurBonusVal = (kBonus.getHappiness() + kBonus.getHealth() == 0);
 		// Also don't worry about the value of additional copies (for corps)
-		if(!bUseOurBonusVal && ((getNumAvailableBonuses(eBonus) > 0 && iChange > 0) ||
-				(getNumAvailableBonuses(eBonus) - iChange > 1)))
+		if(!bUseOurBonusVal && getNumAvailableBonuses(eBonus) + iChange >
+				(iChange < 0 ? 0 : 1))
 			bUseOurBonusVal = true;
 		// Otherwise ePlayer needs to know most of the human's territory
 		if(!bUseOurBonusVal) {
