@@ -375,6 +375,7 @@ void CvGame::regenerateMap()
 
 	gDLL->getEngineIFace()->clearSigns();
 
+	m_aPlotExtraYields.clear(); // advc.004j
 	m.erasePlots();
 
 	CvMapGenerator::GetInstance().generateRandomMap();

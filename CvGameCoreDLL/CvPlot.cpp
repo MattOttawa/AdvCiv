@@ -6177,24 +6177,29 @@ int CvPlot::getYield(YieldTypes eIndex) const
 
 int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnoreFeature) const
 {
+	// advc.016: Cut from calculateYield
+	int iYield = GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
 	if (isImpassable())
-		return 0;
+	{
+		//return 0;
+		/*  advc.016: Impassable tiles with extra yields can be worked -
+			as in BtS. This allows Python modders to make peaks workable. */
+		return iYield;
+	}
 
-	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
-
-	int iYield = GC.getTerrainInfo(getTerrainType()).getYield(eYield);
+	iYield += GC.getTerrainInfo(getTerrainType()).getYield(eYield);
 
 	if (isHills())
 	{
 		iYield += GC.getYieldInfo(eYield).getHillsChange();
 	}
 
-	if (isPeak())
+	else if (isPeak())
 	{
 		iYield += GC.getYieldInfo(eYield).getPeakChange();
 	}
 
-	if (isLake())
+	else if (isLake())
 	{
 		iYield += GC.getYieldInfo(eYield).getLakeChange();
 	}
@@ -6236,8 +6241,7 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 			iYield += GC.getFeatureInfo(getFeatureType()).getYieldChange(eYield);
 		}
 	}
-	// advc.016: Cut from calculateYield
-	iYield += GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
+
 	return std::max(0, iYield);
 }
 
